@@ -24,10 +24,49 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const products = await prisma.product.findMany();
-    return res
-      .status(200)
-      .json({ message: "Products fetched successfully", data: products });
+    const { name, minPrice, sortBy } = req.query;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const products = await prisma.product.findMany({
+      where: {
+        name: {
+          contains: name as string,
+          mode: "insensitive",
+        },
+        price: {
+          gte: minPrice ? Number(minPrice) : 0,
+        },
+      },
+      skip: skip,
+      take: limit,
+      orderBy: {
+        createdAt: sortBy === "oldest" ? "asc" : "desc",
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const totalProducts = await prisma.product.count();
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    return res.status(200).json({
+      message: "Products fetched successfully",
+      meta: {
+        current_page: page,
+        limit: limit,
+        total_pages: totalPages,
+      },
+      data: products,
+    });
   } catch (error) {
     return res
       .status(500)
@@ -89,9 +128,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
         id: Number(id),
       },
     });
-    return res
-      .status(200)
-      .json({ message: "Product deleted successfully" });
+    return res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
     return res
       .status(500)
