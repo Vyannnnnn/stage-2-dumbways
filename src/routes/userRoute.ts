@@ -1,9 +1,12 @@
 import { Router } from "express";
-import { createUser, getAllUsers } from "../controllers/userController";
+import { createUser, getAllUsers, transferPoints } from "../controllers/userController";
+import { createUserSchema,  transferPointsSchema} from "../validations/userSchema";
+import { validateCreateUser, validateTransferPoints } from "../middlewares/validations";
 
 const router = Router();
-router.post("/", createUser);
+router.post("/", validateCreateUser(createUserSchema), createUser);
 router.get("/", getAllUsers);
+router.post("/transfer", validateTransferPoints(transferPointsSchema), transferPoints);
 
 
 
