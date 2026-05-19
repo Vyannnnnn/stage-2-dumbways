@@ -10,6 +10,7 @@ export const createUserSchema = z.object({
     .number()
     .min(0, "Points must be a non-negative number")
     .optional(),
+  profilePicture: z.string().optional(),
 });
 
 export const transferPointsSchema = z

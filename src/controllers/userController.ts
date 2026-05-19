@@ -8,11 +8,13 @@ export const createUser = async (
 ) => {
   try {
     const { email, password, name } = req.body;
+    const profilePicture = req.file ? req.file.filename : null;
     const newUser = await prisma.user.create({
       data: {
         email,
         password,
         name,
+        profilePicture,
       },
     });
     return res
@@ -20,6 +22,32 @@ export const createUser = async (
       .json({ message: "User created successfully", data: newUser });
   } catch (error: any) {
     error.message = "Failed to create user";
+    next(error);
+  }
+};
+
+export const getUserById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+    if (!user) {
+      const error: any = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    return res
+      .status(200)
+      .json({ message: "User fetched successfully", data: user });
+  } catch (error: any) {
+    error.message = "Failed to fetch user";
     next(error);
   }
 };
@@ -71,7 +99,9 @@ export const transferPoints = async (
       });
 
       if (!senderInTx || senderInTx.points < points) {
-        const error: any = new Error("Insufficient points after transaction started");
+        const error: any = new Error(
+          "Insufficient points after transaction started",
+        );
         error.statusCode = 400;
         throw error;
       }

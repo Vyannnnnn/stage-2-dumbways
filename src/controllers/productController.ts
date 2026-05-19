@@ -8,12 +8,16 @@ export const createProduct = async (
 ) => {
   try {
     const { name, price, stock, description } = req.body;
+    const userId = (req as any).user.id;
+    const image = req.file ? req.file.filename : null;
     const newProduct = await prisma.product.create({
       data: {
         name,
-        price,
-        stock,
+        price: Number(price),
+        stock: Number(stock),
+        image,
         description,
+        userId: Number(userId),
       },
     });
     return res
@@ -113,6 +117,7 @@ export const updateProduct = async (
 ) => {
   try {
     const { id } = req.params;
+    const image = req.file ? req.file.filename : null;
     const { name, price, stock, description } = req.body;
     const updatedProduct = await prisma.product.update({
       where: {
@@ -122,6 +127,7 @@ export const updateProduct = async (
         name,
         price,
         stock,
+        image,
         description,
       },
     });
