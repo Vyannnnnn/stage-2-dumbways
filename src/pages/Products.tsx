@@ -1,42 +1,88 @@
-import { Link, Outlet } from "react-router-dom";
 import { Button } from "../components/ui/button";
-import { products } from "../data/products";
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { api } from "@/services/api";
+import PageTitle from "@/components/mycomponents/PageTitle";
+
+type ProductType = {
+  id: number;
+  name: string;
+  image: string;
+  price: number;
+  stock: number;
+  description: string;
+};
 
 export default function Products() {
+  const [products, setProducts] = useState<ProductType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await api.get("/products");
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data.data || res.data.products || [];
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <section className="bg-white border-b border-gray-200 py-12 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Our Products
-          </h1>
-          <p className="text-gray-600">
-            Discover our amazing collection of products
-          </p>
-        </div>
-      </section>
+      <PageTitle
+        title="Our Products"
+        desc="Discover our amazing collection of products"
+      />
 
       <section className="max-w-6xl mx-auto py-12 px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden flex flex-col"
-            >
-              <div className="flex-1 text-center py-16 bg-gray-100 flex items-center justify-center">
-                <div className="text-7xl">{product.image}</div>
-              </div>
-              <div className="p-6">
-                <Button asChild className="w-full">
-                  <Link to={product.id.toString()}>View Details</Link>
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <p className="text-center text-gray-500">Loading products...</p>
+        ) : products.length === 0 ? (
+          <p className="text-center text-gray-500">No products available.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <Card
+                key={product.id}
+                className="relative mx-auto w-full max-w-sm pt-0 bg-zinc-100"
+              >
+                <div className="absolute inset-0 z-30 aspect-video " />
+                {product.image ? (
+                  <img
+                    src={`http://localhost:3000/uploads/${product.image}`}
+                    alt={product.name}
+                    className="relative z-20 aspect-video w-full object-cover brightness-75 dark:brightness-40"
+                  />
+                ) : (
+                  <div className="relative z-20 aspect-video w-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-500">No Image Available</span>
+                  </div>
+                )}
+                <CardHeader>
+                  <CardTitle>{product.name}</CardTitle>
+                  <CardDescription>{product.description}</CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full">View Details</Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
       </section>
-
-      <Outlet />
     </div>
   );
 }

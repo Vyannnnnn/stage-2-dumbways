@@ -1,12 +1,11 @@
 import PageTitle from "@/components/mycomponents/PageTitle";
 
-
-export default function Cart() {
+export default function Dashboard() {
   return (
     <div className="min-h-screen  bg-gray-100">
       <PageTitle
-        title="Your Shopping Cart"
-        desc="Review your selected products and proceed to checkout"
+        title="Welcome to the Dashboard"
+        desc="Manage your products, view orders, and analyze sales data"
       />
     </div>
   );
